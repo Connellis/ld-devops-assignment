@@ -1,0 +1,49 @@
+name: Deploy & Verify
+
+on:
+  push:
+    branches: [main]
+
+env:
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/ld-devops-assignment
+
+jobs:
+  deploy-verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: devops-assignment
+          config: kind-config.yaml
+
+      - name: Install Calico (NetworkPolicy enforcement)
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+          kubectl -n kube-system rollout status daemonset/calico-node --timeout=180s
+          kubectl -n kube-system rollout status deployment/calico-kube-controllers --timeout=180s
+          kubectl wait --for=condition=Ready nodes --all --timeout=180s
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: v3.15.4
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install devops-assignment helm/devops-assignment \
+            --namespace default --create-namespace \
+            --set global.sharedSecret="${{ secrets.SHARED_SECRET }}" \
+            --set server.image.repository="${{ env.IMAGE_BASE }}/server" \
+            --set server.image.tag=main \
+            --set client.image.repository="${{ env.IMAGE_BASE }}/client" \
+            --set client.image.tag=main \
+            --wait --timeout 180s
+
+      - name: Smoke test
+        run: ./scripts/smoke-test.sh
