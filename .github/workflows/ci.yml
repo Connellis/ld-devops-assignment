@@ -48,6 +48,7 @@ jobs:
       contents: read
       packages: write
       id-token: write  # for cosign keyless signing
+      security-events: write  # upload Trivy SARIF results
     strategy:
       matrix:
         app: [server, client]
@@ -96,8 +97,8 @@ jobs:
           ignore-unfixed: true
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        if: github.event_name == 'push' && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: trivy-results.sarif
 
