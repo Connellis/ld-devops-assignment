@@ -66,5 +66,12 @@ jobs:
             --set global.imagePullSecrets[0].name=ghcr-pull \
             --wait --timeout 180s
 
+      - name: Dump Kubernetes diagnostics on failure
+        if: ${{ failure() }}
+        run: |
+          kubectl get pods --all-namespaces -o wide
+          kubectl get events --all-namespaces --sort-by=.lastTimestamp
+          kubectl describe deployments --all-namespaces
+
       - name: Smoke test
         run: ./scripts/smoke-test.sh
