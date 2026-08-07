@@ -1,0 +1,13 @@
+# Two-node local cluster. `disableDefaultCNI` matters more than it looks:
+# kind's default CNI (kindnetd) does NOT enforce NetworkPolicy at all -- it
+# will happily accept and silently ignore every NetworkPolicy object you
+# apply. We disable it and install Calico instead (see scripts/kind-up.sh)
+# so that the NetworkPolicies in k8s/ actually do something.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: devops-assignment
+networking:
+  disableDefaultCNI: true
+nodes:
+  - role: control-plane
+  - role: worker
