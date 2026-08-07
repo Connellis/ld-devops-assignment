@@ -54,6 +54,14 @@ jobs:
               --dry-run=client -o yaml | kubectl apply -f -
           done
 
+      - name: Create application auth secret
+        run: |
+          for namespace in server client; do
+            kubectl -n "$namespace" create secret generic server-auth \
+              --from-literal=SHARED_SECRET="${{ secrets.SHARED_SECRET }}" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
+
       - name: Deploy with Helm
         run: |
           helm upgrade --install devops-assignment helm/devops-assignment \
