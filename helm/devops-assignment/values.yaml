@@ -41,7 +41,7 @@ server:
     limits:
       cpu: "1"
       memory: 1Gi
-    pods: "10"
+    pods: 10
   pdb:
     minAvailable: 1
 
@@ -85,4 +85,4 @@ client:
     limits:
       cpu: 500m
       memory: 512Mi
-    pods: "5"
+    pods: 5

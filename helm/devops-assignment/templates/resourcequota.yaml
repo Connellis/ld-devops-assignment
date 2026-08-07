@@ -11,8 +11,6 @@ metadata:
     {{- include "devops-assignment.labels" $root | nindent 4 }}
 spec:
   hard:
-    {{- range $key, $value := $cfg.resourceQuota }}
-    {{ $key }}: {{ $value }}
-    {{- end }}
+    {{- toYaml $cfg.resourceQuota | nindent 4 }}
 ---
 {{- end }}
