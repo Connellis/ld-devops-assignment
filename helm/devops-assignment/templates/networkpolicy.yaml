@@ -1,0 +1,92 @@
+{{- $root := . }}
+{{- $serverCfg := .Values.server }}
+{{- $clientCfg := .Values.client }}
+{{- $serverNs := printf "%s%s" $root.Values.global.namespacePrefix $serverCfg.namespace }}
+{{- $clientNs := printf "%s%s" $root.Values.global.namespacePrefix $clientCfg.namespace }}
+{{- $kubeSystemNs := "kube-system" }}
+
+# Default-deny in the server namespace, then allow only the client.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ $serverNs }}
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-client-and-dns
+  namespace: {{ $serverNs }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $serverCfg.name }}
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $clientNs }}
+      ports:
+        - protocol: TCP
+          port: {{ $serverCfg.service.port }}
+  egress:
+    # Without this the server can't resolve *anything* via DNS - the most
+    # common NetworkPolicy gotcha.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $kubeSystemNs }}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Default-deny in the client namespace; the client may only reach the server
+# and DNS. Nothing is allowed to reach the client itself.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ $clientNs }}
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-server-and-dns
+  namespace: {{ $clientNs }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $clientCfg.name }}
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    # Only the kubelet's probe traffic reaches this pod, and Calico exempts
+    # host/kubelet probe traffic from NetworkPolicy - so no explicit ingress
+    # rule is needed. Declaring the policyType (with no rules) still makes
+    # ingress default-deny, which is what we want.
+    []
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $serverNs }}
+      ports:
+        - protocol: TCP
+          port: {{ $serverCfg.service.port }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $kubeSystemNs }}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

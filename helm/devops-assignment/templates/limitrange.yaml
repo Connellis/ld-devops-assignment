@@ -1,0 +1,23 @@
+{{- $root := . }}
+{{- range $app := list "server" "client" }}
+{{- $cfg := index $root.Values $app }}
+{{- $ns := printf "%s%s" $root.Values.global.namespacePrefix $cfg.namespace }}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ $cfg.name }}-limits
+  namespace: {{ $ns }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: {{ $cfg.resources.limits.cpu }}
+        memory: {{ $cfg.resources.limits.memory }}
+      defaultRequest:
+        cpu: {{ $cfg.resources.requests.cpu }}
+        memory: {{ $cfg.resources.requests.memory }}
+      max:
+        {{- toYaml $cfg.limitRange.max | nindent 8 }}
+{{- end }}

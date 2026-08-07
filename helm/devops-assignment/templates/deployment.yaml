@@ -1,0 +1,71 @@
+{{- $root := . }}
+{{- range $app := list "server" "client" }}
+{{- $cfg := index $root.Values $app }}
+{{- $ns := printf "%s%s" $root.Values.global.namespacePrefix $cfg.namespace }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $cfg.name }}
+  namespace: {{ $ns }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+    app.kubernetes.io/name: {{ $cfg.name }}
+spec:
+  replicas: {{ $cfg.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $cfg.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $cfg.name }}
+    spec:
+      serviceAccountName: {{ $cfg.name }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ $cfg.name }}
+          image: "{{ $cfg.image.repository }}:{{ $cfg.image.tag }}"
+          imagePullPolicy: {{ $cfg.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: {{ $cfg.name }}-config
+          env:
+            - name: SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: server-auth
+                  key: SHARED_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml $cfg.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            {{- toYaml $cfg.probes.readiness | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            {{- toYaml $cfg.probes.liveness | nindent 12 }}
+          volumeMounts:
+            # readOnlyRootFilesystem needs somewhere writable for Python's
+            # runtime temp files; an emptyDir is the standard pattern.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+{{- end }}

@@ -1,0 +1,19 @@
+{{- $root := . }}
+{{- $serverCfg := .Values.server }}
+{{- $serverNs := printf "%s%s" $root.Values.global.namespacePrefix $serverCfg.namespace }}
+{{- if $serverCfg.pdb }}
+# Only meaningful because app2-server runs with replicaCount: 2 - guarantees
+# at least one replica stays up during voluntary disruptions (node drains).
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $serverCfg.name }}-pdb
+  namespace: {{ $serverNs }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+spec:
+  minAvailable: {{ $serverCfg.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $serverCfg.name }}
+{{- end }}

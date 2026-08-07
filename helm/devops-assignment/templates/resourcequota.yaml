@@ -1,0 +1,18 @@
+{{- $root := . }}
+{{- range $app := list "server" "client" }}
+{{- $cfg := index $root.Values $app }}
+{{- $ns := printf "%s%s" $root.Values.global.namespacePrefix $cfg.namespace }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ $cfg.name }}-quota
+  namespace: {{ $ns }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+spec:
+  hard:
+    {{- range $key, $value := $cfg.resourceQuota }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+---
+{{- end }}

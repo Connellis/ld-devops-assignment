@@ -1,0 +1,16 @@
+{{- $root := . }}
+{{- range $app := list "server" "client" }}
+{{- $cfg := index $root.Values $app }}
+{{- $ns := printf "%s%s" $root.Values.global.namespacePrefix $cfg.namespace }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $cfg.name }}
+  namespace: {{ $ns }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+# Neither app talks to the Kubernetes API, so there's nothing this
+# ServiceAccount's token would ever be used for -- don't even mount it.
+automountServiceAccountToken: false
+---
+{{- end }}

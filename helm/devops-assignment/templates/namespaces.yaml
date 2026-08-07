@@ -1,0 +1,18 @@
+{{- $root := . }}
+{{- range $ns := list "server" "client" }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $root.Values.global.namespacePrefix }}{{ $ns }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+    {{- include "devops-assignment.partOf" $root | nindent 4 }}
+    # Enforce the restricted Pod Security Standard on every pod created in
+    # this namespace - non-root, no privilege escalation, dropped
+    # capabilities. Built into Kubernetes (Pod Security Admission), no
+    # extra tooling required.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+{{- end }}

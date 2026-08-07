@@ -1,0 +1,88 @@
+# Global settings shared across both apps
+global:
+  namespacePrefix: ""  # empty => server/client namespaces as-is
+  sharedSecret: ""     # injected at install time (--set global.sharedSecret=...)
+
+# App2 (server) configuration
+server:
+  name: app2-server
+  namespace: server
+  replicaCount: 2
+  image:
+    repository: ghcr.io/connellis/ld-devops-assignment/server
+    tag: main
+    pullPolicy: IfNotPresent
+  service:
+    port: 8000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  config:
+    LOG_LEVEL: INFO
+  probes:
+    readiness:
+      initialDelaySeconds: 3
+      periodSeconds: 5
+    liveness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  limitRange:
+    max:
+      cpu: "1"
+      memory: 512Mi
+  resourceQuota:
+    requests:
+      cpu: "500m"
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    pods: "10"
+  pdb:
+    minAvailable: 1
+
+# App1 (client) configuration
+client:
+  name: app1-client
+  namespace: client
+  replicaCount: 1
+  image:
+    repository: ghcr.io/connellis/ld-devops-assignment/client
+    tag: main
+    pullPolicy: IfNotPresent
+  service:
+    port: 8000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  config:
+    TARGET_URL: http://app2-server.server.svc.cluster.local:8000/work
+    POLL_INTERVAL_SECONDS: "5"
+    LOG_LEVEL: INFO
+  probes:
+    readiness:
+      initialDelaySeconds: 3
+      periodSeconds: 5
+    liveness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  limitRange:
+    max:
+      cpu: 500m
+      memory: 256Mi
+  resourceQuota:
+    requests:
+      cpu: "250m"
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    pods: "5"

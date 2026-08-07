@@ -1,0 +1,17 @@
+{{- $root := . }}
+{{- range $app := list "server" "client" }}
+{{- $cfg := index $root.Values $app }}
+{{- $ns := printf "%s%s" $root.Values.global.namespacePrefix $cfg.namespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $cfg.name }}-config
+  namespace: {{ $ns }}
+  labels:
+    {{- include "devops-assignment.labels" $root | nindent 4 }}
+data:
+  {{- range $key, $value := $cfg.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+---
+{{- end }}
