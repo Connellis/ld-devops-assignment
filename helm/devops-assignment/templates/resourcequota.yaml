@@ -11,6 +11,10 @@ metadata:
     {{- include "devops-assignment.labels" $root | nindent 4 }}
 spec:
   hard:
-    {{- toYaml $cfg.resourceQuota | nindent 4 }}
+    "requests.cpu": {{ $cfg.resourceQuota.requests.cpu | quote }}
+    "requests.memory": {{ $cfg.resourceQuota.requests.memory | quote }}
+    "limits.cpu": {{ $cfg.resourceQuota.limits.cpu | quote }}
+    "limits.memory": {{ $cfg.resourceQuota.limits.memory | quote }}
+    pods: {{ $cfg.resourceQuota.pods | quote }}
 ---
 {{- end }}
