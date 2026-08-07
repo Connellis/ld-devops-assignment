@@ -2,6 +2,7 @@
 global:
   namespacePrefix: ""  # empty => server/client namespaces as-is
   sharedSecret: ""     # injected at install time (--set global.sharedSecret=...)
+  imagePullSecrets: []  # optional names of registry credentials in each app namespace
 
 # App2 (server) configuration
 server:

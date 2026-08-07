@@ -26,6 +26,10 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      {{- with $root.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ $cfg.name }}
           image: "{{ $cfg.image.repository }}:{{ $cfg.image.tag }}"
