@@ -36,8 +36,13 @@ jobs:
 
       - name: Create application namespaces
         run: |
-          kubectl create namespace server --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create namespace client --dry-run=client -o yaml | kubectl apply -f -
+          for namespace in server client; do
+            kubectl create namespace "$namespace" --dry-run=client -o yaml | kubectl apply -f -
+            kubectl label namespace "$namespace" app.kubernetes.io/managed-by=Helm --overwrite
+            kubectl annotate namespace "$namespace" \
+              meta.helm.sh/release-name=devops-assignment \
+              meta.helm.sh/release-namespace=default --overwrite
+          done
 
       - name: Create GHCR pull secret
         run: |
