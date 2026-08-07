@@ -60,6 +60,11 @@ jobs:
             kubectl -n "$namespace" create secret generic server-auth \
               --from-literal=SHARED_SECRET="${{ secrets.SHARED_SECRET }}" \
               --dry-run=client -o yaml | kubectl apply -f -
+            kubectl -n "$namespace" label secret server-auth \
+              app.kubernetes.io/managed-by=Helm --overwrite
+            kubectl -n "$namespace" annotate secret server-auth \
+              meta.helm.sh/release-name=devops-assignment \
+              meta.helm.sh/release-namespace=default --overwrite
           done
 
       - name: Deploy with Helm
