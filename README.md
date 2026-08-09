@@ -40,6 +40,64 @@ Remove the local cluster with:
 make teardown
 ```
 
+## Deploy with registry images (production-style)
+
+The local workflow above builds and loads images directly into kind. In a production-like setup, images are built, pushed to a registry (GHCR), and pulled by the cluster. This is the same flow the CI pipeline uses.
+
+### 1. Build and push images to GHCR
+
+```bash
+docker build -t ghcr.io/<your-username>/ld-devops-assignment/server:main apps/server
+docker build -t ghcr.io/<your-username>/ld-devops-assignment/client:main apps/client
+
+docker push ghcr.io/<your-username>/ld-devops-assignment/server:main
+docker push ghcr.io/<your-username>/ld-devops-assignment/client:main
+```
+
+Or push via the CI pipeline — pushes to `main` automatically build and publish both images to GHCR.
+
+### 2. Create the cluster
+
+```bash
+make kind-up
+```
+
+### 3. Create the GHCR pull secret
+
+kind needs credentials to pull private GHCR images. Create a Personal Access Token (PAT) with `read:packages` scope, then:
+
+```bash
+for namespace in server client; do
+  kubectl -n "$namespace" create secret docker-registry ghcr-pull \
+    --docker-server=ghcr.io \
+    --docker-username=<your-github-username> \
+    --docker-password=<your-PAT> \
+    --dry-run=client -o yaml | kubectl apply -f -
+done
+```
+
+### 4. Deploy with Helm
+
+```bash
+SHARED_SECRET="$(openssl rand -hex 32)"
+
+helm upgrade --install devops-assignment helm/devops-assignment \
+  --namespace default --create-namespace \
+  --set global.sharedSecret="$SHARED_SECRET" \
+  --set server.image.repository=ghcr.io/<your-username>/ld-devops-assignment/server \
+  --set server.image.tag=main \
+  --set client.image.repository=ghcr.io/<your-username>/ld-devops-assignment/client \
+  --set client.image.tag=main \
+  --set global.imagePullSecrets[0].name=ghcr-pull \
+  --wait --timeout 180s
+```
+
+### 5. Verify
+
+```bash
+./scripts/smoke-test.sh
+```
+
 ## Tests and linting
 
 ```bash
@@ -65,7 +123,7 @@ Repeat the same steps in `apps/client` when needed.
 
 Pull requests and pushes to `main` run linting and tests. Pushes to `main` also build and publish both images to GHCR, scan them with Trivy, upload the scan results, and sign the images with Cosign using GitHub OIDC.
 
-Trivy checks for HIGH and CRITICAL vulnerabilities. The workflow currently uses `exit-code: "0"`, so findings are reported but do not fail the build. Set it to `"1"` if the required policy is to block delivery when such findings are present.
+Trivy checks for HIGH and CRITICAL vulnerabilities. The workflow currently uses `exit-code: "0"`, so findings are reported but do not fail the build. Set it to `"1"` to block delivery when such findings are present.
 
 ### Deploy & Verify (`.github/workflows/deploy-verify.yml`)
 
@@ -130,4 +188,3 @@ apps/client/        App1 polling service
 helm/               Helm chart and Kubernetes resources
 scripts/             Local cluster, deployment, and smoke-test scripts
 .github/workflows/  CI and Deploy & Verify workflows
-```

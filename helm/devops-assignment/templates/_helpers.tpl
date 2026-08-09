@@ -1,11 +1,4 @@
 {{/*
-Full name of an app component. Falls back to the chart name for the app names.
-*/}}
-{{- define "devops-assignment.fullname" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Common labels shared by every resource in the chart.
 */}}
 {{- define "devops-assignment.labels" -}}

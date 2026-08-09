@@ -20,4 +20,5 @@ spec:
         memory: {{ $cfg.resources.requests.memory }}
       max:
         {{- toYaml $cfg.limitRange.max | nindent 8 }}
+---
 {{- end }}

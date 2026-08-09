@@ -10,8 +10,6 @@ metadata:
   labels:
     {{- include "devops-assignment.labels" $root | nindent 4 }}
 data:
-  {{- range $key, $value := $cfg.config }}
-  {{ $key }}: {{ $value | quote }}
-  {{- end }}
+  {{- toYaml $cfg.config | nindent 2 }}
 ---
 {{- end }}
