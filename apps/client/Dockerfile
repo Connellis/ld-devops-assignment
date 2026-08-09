@@ -9,14 +9,10 @@ WORKDIR /build
 
 COPY requirements.txt .
 
-# Install to a plain dir, not a venv: venv symlinks point back at the builder's
-# Python path, which doesn't exist in the distroless runtime image.
 RUN pip install --no-cache-dir --target=/dependencies -r requirements.txt
 
 COPY app ./app
 
-# Distroless: no shell, no package manager. Runs as non-root already. We use
-# the Python interpreter that ships inside it and point PYTHONPATH at our deps.
 FROM gcr.io/distroless/python3-debian12:nonroot AS runtime
 
 WORKDIR /app

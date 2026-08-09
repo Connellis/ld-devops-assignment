@@ -1,8 +1,8 @@
 # Global settings shared across both apps
 global:
-  namespacePrefix: ""  # empty => server/client namespaces as-is
+  namespacePrefix: "" 
   sharedSecret: ""     # injected at install time (--set global.sharedSecret=...)
-  imagePullSecrets: []  # optional names of registry credentials in each app namespace
+  imagePullSecrets: []
 
 # App2 (server) configuration
 server:

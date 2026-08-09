@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generates .env (gitignored) with a random shared secret.
+# Generates .env with a random shared secret.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"

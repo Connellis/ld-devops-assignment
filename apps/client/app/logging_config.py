@@ -1,8 +1,6 @@
 """Structured JSON logging.
 
-Deliberately uses only the standard library (no structlog/loguru) to keep the
-dependency surface - and therefore the image's attack surface - as small as
-possible. Every log line is a single JSON object on stdout, which is exactly
+Every log line is a single JSON object on stdout, which is exactly
 what a log shipper (Fluent Bit, Promtail, etc.) expects in production.
 """
 

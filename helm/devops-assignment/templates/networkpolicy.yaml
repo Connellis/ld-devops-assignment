@@ -34,8 +34,6 @@ spec:
         - protocol: TCP
           port: {{ $serverCfg.service.port }}
   egress:
-    # Without this the server can't resolve *anything* via DNS - the most
-    # common NetworkPolicy gotcha.
     - to:
         - namespaceSelector:
             matchLabels:
@@ -71,7 +69,7 @@ spec:
     # Only the kubelet's probe traffic reaches this pod, and Calico exempts
     # host/kubelet probe traffic from NetworkPolicy - so no explicit ingress
     # rule is needed. Declaring the policyType (with no rules) still makes
-    # ingress default-deny, which is what we want.
+    # ingress default-deny.
     []
   egress:
     - to:

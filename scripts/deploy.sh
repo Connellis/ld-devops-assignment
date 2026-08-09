@@ -5,7 +5,6 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 RELEASE_NAME="devops-assignment"
 
 # Reuse the local .env secret if present, otherwise generate one on the fly.
-# The chart requires a value; this keeps `make deploy` working with zero setup.
 if [[ -f "$ROOT_DIR/.env" ]]; then
   # shellcheck disable=SC1090
   source "$ROOT_DIR/.env"

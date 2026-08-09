@@ -2,8 +2,7 @@
 {{- $serverCfg := .Values.server }}
 {{- $serverNs := printf "%s%s" $root.Values.global.namespacePrefix $serverCfg.namespace }}
 {{- if $serverCfg.pdb }}
-# Only meaningful because app2-server runs with replicaCount: 2 - guarantees
-# at least one replica stays up during voluntary disruptions (node drains).
+# With two replicas, keep at least one available during voluntary disruptions.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
