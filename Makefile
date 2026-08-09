@@ -24,7 +24,17 @@ teardown: ## Delete the kind cluster
 	./scripts/teardown.sh
 
 lint: ## Ruff check (run inside either app venv)
-	ruff check apps
+	@if [[ -x .venv/bin/ruff ]]; then \
+		.venv/bin/ruff check apps; \
+	elif [[ -x apps/server/.venv/bin/ruff ]]; then \
+		apps/server/.venv/bin/ruff check apps; \
+	elif [[ -x apps/client/.venv/bin/ruff ]]; then \
+		apps/client/.venv/bin/ruff check apps; \
+	else \
+		echo "Ruff not found in .venv, apps/server/.venv, or apps/client/.venv." >&2; \
+		echo "Create an app venv and install its requirements-dev.txt first." >&2; \
+		exit 1; \
+	fi
 
 test: ## Run pytest for both apps
 	cd apps/server && pytest -q

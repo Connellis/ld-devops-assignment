@@ -113,8 +113,13 @@ helm upgrade --install devops-assignment helm/devops-assignment \
   --set client.image.repository=ghcr.io/<your-username>/ld-devops-assignment/client \
   --set client.image.tag=main \
   --set global.imagePullSecrets[0].name=ghcr-pull \
+  --set global.kubeletProbeCIDR=<node-cidr> \
   --wait --timeout 180s
 ```
+
+`global.kubeletProbeCIDR` explicitly allows kubelet health probes to reach the
+client. The default (`172.16.0.0/12`) is suitable for the Docker Desktop/kind
+setup; use the CIDR assigned to Kubernetes nodes in another cluster.
 
 ### 5. Verify
 
@@ -129,7 +134,9 @@ make lint
 make test
 ```
 
-For local application development, create a virtual environment in the application directory and install its development requirements:
+For local application development, create a virtual environment in the application directory and install its development requirements. `make lint`
+uses Ruff from a local project/app virtual environment and never requires a
+global Ruff installation:
 
 ```bash
 cd apps/server

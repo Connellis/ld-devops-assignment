@@ -13,7 +13,21 @@ echo "===== direct check via port-forward ====="
 kubectl -n server port-forward svc/app2-server 18000:8000 >/tmp/port-forward.log 2>&1 &
 PF_PID=$!
 trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
-sleep 2
+
+echo "Waiting for the port-forward to become ready..."
+port_forward_ready=false
+for _ in $(seq 1 30); do
+  if curl --silent --fail --max-time 1 http://localhost:18000/healthz >/dev/null; then
+    port_forward_ready=true
+    break
+  fi
+  sleep 1
+done
+if [[ "$port_forward_ready" != true ]]; then
+  echo "Port-forward did not become ready within 30 seconds." >&2
+  cat /tmp/port-forward.log >&2
+  exit 1
+fi
 
 SECRET="$(kubectl -n server get secret server-auth -o jsonpath='{.data.SHARED_SECRET}' | base64 -d)"
 echo -n "GET /work with correct secret -> "

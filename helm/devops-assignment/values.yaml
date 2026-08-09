@@ -3,6 +3,9 @@ global:
   namespacePrefix: "" 
   sharedSecret: ""     # injected at install time (--set global.sharedSecret=...)
   imagePullSecrets: []
+  # CIDR containing Kubernetes node/kubelet addresses. The default covers
+  # Docker Desktop/kind networks; set this to the node CIDR for other clusters.
+  kubeletProbeCIDR: "172.16.0.0/12"
 
 # App2 (server) configuration
 server:

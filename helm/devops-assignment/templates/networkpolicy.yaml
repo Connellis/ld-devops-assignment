@@ -66,11 +66,15 @@ spec:
       app.kubernetes.io/name: {{ $clientCfg.name }}
   policyTypes: ["Ingress", "Egress"]
   ingress:
-    # Only the kubelet's probe traffic reaches this pod, and Calico exempts
-    # host/kubelet probe traffic from NetworkPolicy - so no explicit ingress
-    # rule is needed. Declaring the policyType (with no rules) still makes
-    # ingress default-deny.
-    []
+    # Probe requests originate from the node hosting the pod. This explicit
+    # ipBlock works with Calico, Cilium, kindnet, and other CNIs; configure the
+    # CIDR for the node network when deploying outside the default kind setup.
+    - from:
+        - ipBlock:
+            cidr: {{ $root.Values.global.kubeletProbeCIDR | quote }}
+      ports:
+        - protocol: TCP
+          port: {{ $clientCfg.service.port }}
   egress:
     - to:
         - namespaceSelector:
