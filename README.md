@@ -7,11 +7,35 @@ This repository contains two small FastAPI services:
 
 Both services are containerized and deployed with Helm to Kubernetes. The deployment uses separate namespaces, NetworkPolicies, resource limits, and a shared secret for authentication.
 
+## Supported platforms
+
+This setup has been tested and verified on:
+
+- **macOS** (Apple Silicon and Intel)
+- **Linux** (Debian/Ubuntu-based distributions)
+- **Windows** — only with [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) (Windows Subsystem for Linux). Native Windows (PowerShell/CMD) is **not** supported.
+
+All commands below are run from a terminal on macOS/Linux, or from the WSL2 terminal on Windows.
+
 ## Prerequisites
 
-Install Docker Desktop, [kind](https://kind.sigs.k8s.io/), kubectl, Helm, OpenSSL, and curl.
+Install the following tools:
+
+| Tool | macOS | Linux | Windows (WSL2) |
+| --- | --- | --- | --- |
+| Docker | [Docker Desktop](https://docs.docker.com/desktop/) | [Docker Engine](https://docs.docker.com/engine/install) | [Docker Desktop with WSL2 backend](https://docs.docker.com/desktop/wsl/) |
+| kind | `brew install kind` | `curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64 && chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind` | `curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64 && chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind` |
+| kubectl | `brew install kubectl` | `curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/kubectl` | `curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/kubectl` |
+| Helm | `brew install helm` | `curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh` | `curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 get_helm.sh && ./get_helm.sh` |
+| make | Xcode Command Line Tools (`xcode-select --install`) | `sudo apt install -y make` | `sudo apt install -y make` |
+| OpenSSL | Included with macOS | `sudo apt install -y openssl` | `sudo apt install -y openssl` |
+| curl | Included with macOS | `sudo apt install -y curl` | `sudo apt install -y curl` |
+
+> **Note**: On Windows, run all commands inside the WSL2 terminal, not PowerShell or CMD. Docker Desktop must be configured to use the WSL2 backend.
 
 ## Run locally
+
+> **Clone the entire repository**: The `helm/`, `apps/`, `scripts/`, and `Makefile` are what the local deployment uses.
 
 From the repository root:
 
