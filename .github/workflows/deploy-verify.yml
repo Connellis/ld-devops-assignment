@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Set up kind
-        uses: helm/kind-action@v1.14.0
+        uses: helm/kind-action@v1.15.1
         with:
           cluster_name: devops-assignment
           config: kind-config.yaml
